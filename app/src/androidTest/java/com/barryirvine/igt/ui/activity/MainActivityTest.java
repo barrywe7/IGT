@@ -1,12 +1,11 @@
 package com.barryirvine.igt.ui.activity;
 
 import android.support.test.rule.ActivityTestRule;
-import android.util.Log;
 
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 
 public class MainActivityTest {
 
