@@ -7,7 +7,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:2.3.2'
         // Should not be necessary once Android Studio 2.4 is properly live
-        classpath 'me.tatarka:gradle-retrolambda:3.2.0'
+        classpath 'me.tatarka:gradle-retrolambda:3.6.1'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -17,21 +17,30 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
-    }
-
-    ext {
-        androidCompileSdkVersion = 25
-        androidMinSdkVersion = 17
-        androidTargetSdkVersion = 25
-        androidBuildToolsVersion = '25.0.3'
-        supportLibraryVersion = '25.3.1'
-        daggerVersion = '2.10'
-        retrofitVersion = '2.2.0'
-        okHttpVersion = '3.6.0'
+        maven {
+            url "https://maven.google.com"
+        }
     }
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
 
+}
+
+ext {
+    androidCompileSdkVersion = 25
+    androidMinSdkVersion = 17
+    androidTargetSdkVersion = 25
+    androidBuildToolsVersion = "25.0.3"
+    supportLibraryVersion = "25.3.1"
+    daggerVersion = "2.10"
+    retrofitVersion = "2.2.0"
+    okHttpVersion = "3.6.0"
+    junitVersion = "4.12"
+    rxJavaVersion = "2.0.1"
+    mockitoVersion = "2.8.9"
+    archLifecycleVersion = "1.0.0-alpha1"
+    picassoVersion = "2.5.2"
+    espressoVersion = "2.2.2"
 }

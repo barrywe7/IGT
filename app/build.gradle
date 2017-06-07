@@ -1,21 +1,25 @@
 apply plugin: 'com.android.application'
 
-
 // Should not be necessary once Android Studio 2.4 is properly live
 apply plugin: 'me.tatarka.retrolambda'
+apply plugin: 'jacoco'
+
 
 android {
-    compileSdkVersion androidCompileSdkVersion
-    buildToolsVersion androidBuildToolsVersion
+    compileSdkVersion rootProject.androidCompileSdkVersion
+    buildToolsVersion rootProject.androidBuildToolsVersion
     defaultConfig {
         applicationId "com.barryirvine.igt"
-        minSdkVersion androidMinSdkVersion
-        targetSdkVersion androidTargetSdkVersion
+        minSdkVersion rootProject.androidMinSdkVersion
+        targetSdkVersion rootProject.androidTargetSdkVersion
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
+        debug {
+            testCoverageEnabled !project.hasProperty('android.injected.invoked.from.ide')
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -32,27 +36,63 @@ android {
     }
 }
 
+/*jacoco {
+    toolVersion = "0.7.4+"
+}*/
+
 dependencies {
     // Including all libraries that I normally use - will try to tidy up at the end if any are unused
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    compile 'com.android.support:design:' + rootProject.supportLibraryVersion
+    compile 'com.squareup.retrofit2:retrofit:' + rootProject.retrofitVersion
+    compile 'com.squareup.retrofit2:adapter-rxjava2:' + rootProject.retrofitVersion
+    compile 'com.squareup.retrofit2:converter-gson:' + rootProject.retrofitVersion
+    compile 'com.google.dagger:dagger:' + rootProject.daggerVersion
+    compile 'com.google.dagger:dagger-android:' + rootProject.daggerVersion
+    compile 'android.arch.lifecycle:extensions:' + rootProject.archLifecycleVersion
+    compile 'com.squareup.okhttp3:logging-interceptor:' + rootProject.okHttpVersion
+    compile 'io.reactivex.rxjava2:rxandroid:' + rootProject.rxJavaVersion
+    compile 'com.squareup.picasso:picasso:' + rootProject.picassoVersion
+    // The existing OkHttp downloader does not work with OkHttp3. The next release of Picasso should render this unnecessary
+    compile 'com.jakewharton.picasso:picasso2-okhttp3-downloader:1.1.0'
+
+    annotationProcessor 'com.google.dagger:dagger-compiler:' + rootProject.daggerVersion
+    annotationProcessor 'com.google.dagger:dagger-android-processor:' + rootProject.daggerVersion
+    annotationProcessor 'android.arch.lifecycle:compiler:' + rootProject.archLifecycleVersion;
+
+    androidTestCompile('com.android.support.test.espresso:espresso-core:' + rootProject.espressoVersion, {
         exclude group: 'com.android.support', module: 'support-annotations'
         exclude group: 'com.google.code.findbugs'
     })
-    compile "com.android.support:design:${supportLibraryVersion}"
-    compile "com.squareup.retrofit2:retrofit:${retrofitVersion}"
-    compile "com.squareup.retrofit2:adapter-rxjava2:${retrofitVersion}"
-    compile "com.squareup.retrofit2:converter-gson:${retrofitVersion}"
-    compile "com.google.dagger:dagger:${daggerVersion}"
-    compile "com.google.dagger:dagger-android:${daggerVersion}"
-    annotationProcessor "com.google.dagger:dagger-compiler:${daggerVersion}"
-    annotationProcessor "com.google.dagger:dagger-android-processor:${daggerVersion}"
-    testCompile "com.squareup.okhttp3:mockwebserver:${okHttpVersion}"
-    compile "com.squareup.okhttp3:logging-interceptor:${okHttpVersion}"
-    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    compile 'com.squareup.picasso:picasso:2.5.2'
-    // The existing OkHttp downloader does not work with OkHttp3. The next release of Picasso should render this unnecessary
-    compile 'com.jakewharton.picasso:picasso2-okhttp3-downloader:1.0.2'
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-core:2.8.9'
+
+    testCompile 'junit:junit:' + rootProject.junitVersion
+    testCompile 'org.mockito:mockito-core:' + rootProject.mockitoVersion
+    testCompile 'com.squareup.okhttp3:mockwebserver:' + rootProject.okHttpVersion
+}
+
+
+task fullCoverageReport(type: JacocoReport) {
+    dependsOn 'createDebugCoverageReport'
+    dependsOn 'testDebugUnitTest'
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+
+    def fileFilter = ['**//**//**//**//*R.class', '**//**//**//**//*R$*.class', '**//**//**//**//*BuildConfig.*', '**//**//**//**//*Manifest*.*',
+                      '*****/*//*//**//*//**//**//**//*Test*.*', 'android*//**//**//**//*****/*//*//**//*//**//**//**//*.*',
+                      '*****/*//*//**//*//**//**//**//*_MembersInjector.class',
+                      '**//**//**//**//*Dagger*Component.class',
+                      '**//**//**//**//*Dagger*Component$Builder.class',
+                      '*****/*//*//**//*//**//**//**//*_*Factory.class',
+                      '*****/*//*//**//*//**//**//**//*ComponentImpl.class',
+                      '*****/*//*//**//*//**//**//**//*SubComponentBuilder.class']
+    def debugTree = fileTree(dir: "${buildDir}/intermediates/classes/debug", excludes: fileFilter)
+    def mainSrc = "${project.projectDir}/src/main/java"
+
+    sourceDirectories = files([mainSrc])
+    classDirectories = files([debugTree])
+    executionData = fileTree(dir: "$buildDir", includes: [
+            "jacoco/testDebugUnitTest.exec",
+            "outputs/code-coverage/connected*//**//**//**//*coverage.ec"
+    ])
 }

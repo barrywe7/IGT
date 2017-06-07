@@ -10,11 +10,9 @@ public class PlayerInfo {
     private int mBalance;
     @SerializedName("avatarLink")
     private String mAvatarLink;
-    /**
-     * Parsed as String because not in ISO-8601 format
-     */
-    // Parsed as String because not in ISO-8601 format. Assumption is that the server is
-    // returning a UTC date in format dd/MM/yyyy'T'HH:mm
+
+    /* Parsed as String because not in ISO-8601 format. Assumption is that the server is
+     returning a UTC date in format dd/MM/yyyy'T'HH:mm */
     @SerializedName("lastLogindate")
     private String mLastLoginDate;
 
